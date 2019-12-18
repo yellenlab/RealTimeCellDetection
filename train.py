@@ -24,8 +24,12 @@ import datetime
 # Oof
 import eval as eval_script
 
+#best_box_map = 0.
+#best_mask_map = 0.
+
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
+
 
 
 parser = argparse.ArgumentParser(
@@ -169,6 +173,8 @@ class CustomDataParallel(nn.DataParallel):
         return out
 
 def train():
+    best_box_map = 0.
+    best_mask_map = 0.
     if not os.path.exists(args.save_folder):
         os.mkdir(args.save_folder)
 
@@ -359,8 +365,8 @@ def train():
                     if args.keep_latest:
                         latest = SavePath.get_latest(args.save_folder, cfg.name)
 
-                    print('Saving state, iter:', iteration)
-                    yolact_net.save_weights(save_path(epoch, iteration))
+                    #print('Saving state, iter:', iteration)
+                    #yolact_net.save_weights(save_path(epoch, iteration))
 
                     if args.keep_latest and latest is not None:
                         if args.keep_latest_interval <= 0 or iteration % args.keep_latest_interval != args.save_interval:
@@ -370,7 +376,14 @@ def train():
             # This is done per epoch
             if args.validation_epoch > 0:
                 if epoch % args.validation_epoch == 0 and epoch > 0:
-                    compute_validation_map(epoch, iteration, yolact_net, val_dataset, log if args.log else None)
+                    box_map, mask_map = compute_validation_map(epoch, iteration, yolact_net, val_dataset, log if args.log else None)
+                    if box_map + mask_map > best_box_map + best_mask_map:
+                        best_box_map = box_map
+                        best_mask_map = mask_map
+                        print('Saving best state, iter:', iteration)
+                        #print(save_path(epoch, iteration))
+                        #yolact_net.save_weights(save_path(epoch, iteration))
+                        yolact_net.save_weights('./weights/best.pth')
 
         # Compute validation mAP after training is finished
         compute_validation_map(epoch, iteration, yolact_net, val_dataset, log if args.log else None)
@@ -493,11 +506,13 @@ def compute_validation_map(epoch, iteration, yolact_net, dataset, log:Log=None):
         print("Computing validation mAP (this may take a while)...", flush=True)
         val_info = eval_script.evaluate(yolact_net, dataset, train_mode=True)
         end = time.time()
-
+        box_map = val_info['box']['all']
+        mask_map = val_info['mask']['all']
         if log is not None:
             log.log('val', val_info, elapsed=(end - start), epoch=epoch, iter=iteration)
 
         yolact_net.train()
+        return box_map, mask_map
 
 def setup_eval():
     eval_script.parse_args(['--no_bar', '--max_images='+str(args.validation_size)])
