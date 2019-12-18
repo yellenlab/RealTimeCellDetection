@@ -180,9 +180,9 @@ pascal_sbd_dataset = dataset_base.copy({
 
 resnet_transform = Config({
     'channel_order': 'RGB',
-    'normalize': True,
+    'normalize': False,
     'subtract_means': False,
-    'to_float': False,
+    'to_float': True,
 })
 
 vgg_transform = Config({
@@ -633,7 +633,7 @@ yolact_base_config = coco_base_config.copy({
     'max_size': 550,
 
     # Training params
-    'lr_steps': (280000, 600000, 700000, 750000),
+    'lr_steps': (50000, 100000, 150000, 200000),
     'max_iter': 800000,
 
     # Backbone Settings

@@ -236,7 +236,8 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
             score = scores[j]
 
             if args.display_bboxes:
-                cv2.rectangle(img_numpy, (x1, y1), (x2, y2), color, 1)
+                #cv2.rectangle(img_numpy, (x1, y1), (x2, y2), color, 1)
+                cv2.circle(img_numpy, (int(x1/2+x2/2), int(y1/2+y2/2)), 1, (0,0,255), 3)
 
             if args.display_text:
                 _class = 'cell'

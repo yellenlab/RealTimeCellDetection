@@ -7,8 +7,8 @@ from numpy import random
 from math import sqrt
 
 #from __init__ import cfg, MEANS, STD
-MEANS = 0.5
-STD = 1
+#MEANS = 0.5
+#STD = 1
 
 def intersect(box_a, box_b):
     max_xy = np.minimum(box_a[:, 2:], box_b[2:])
@@ -595,4 +595,14 @@ class BackboneTransform(object):
 
         return img.astype(np.float32), masks, boxes, labels
 
-
+class BaseTransform(object):
+    def __init__(self):
+        self.augment = Compose([
+            ConvertFromInts(),
+            ToAbsoluteCoords(),
+            Resize(300),
+            ToPercentCoords(),
+            Normalize(),
+            ])
+    def __call__(self, img, masks, boxes, labels):
+        return self.augment(img, masks, boxes, labels)
