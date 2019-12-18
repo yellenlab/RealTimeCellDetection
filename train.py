@@ -382,6 +382,8 @@ def train():
                         best_mask_map = mask_map
                         print('Saving best state, iter:', iteration)
                         #print(save_path(epoch, iteration))
+                        print('Best box mAP: '+str(best_box_map))
+                        print('Best mask mAP: '+str(best_mask_map))
                         #yolact_net.save_weights(save_path(epoch, iteration))
                         yolact_net.save_weights('./weights/best.pth')
 
